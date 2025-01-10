@@ -5,43 +5,121 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --yellow-gold: #e6ca97;
+  --white-gold: #d9d9d9;
+  --rose-gold: #e1a4a9;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.fs-1 {
+  font-size: 12px;
+}
+
+.fs-2 {
+  font-size: 14px;
+}
+
+.fs-3 {
+  font-size: 15px;
+}
+
+.fs-4 {
+  font-size: 45px;
+}
+
+.f-avenir {
+  font-family: "Avenir", sans-serif;
+}
+
+.f-montserrat-regular {
+  font-family: "Montserrat-regular", sans-serif;
+}
+
+.f-montserrat-medium {
+  font-family: "Montserrat-medium", sans-serif;
+}
+
+@font-face {
+  font-family: "Avenir";
+  src: url("../../public/fonts/Avenir/Avenir-Book.ttf") format("truetype");
+  font-weight: lighter;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Montserrat-regular";
+  src: url("../../public/fonts/Montserrat/Montserrat-Regular.ttf")
+    format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Montserrat-medium";
+  src: url("../../public/fonts/Montserrat/Montserrat-Medium.otf")
+    format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.gold-dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 0.25rem;
+  border: 2px solid transparent;
+}
+
+.gold-dot:hover {
+  cursor: pointer;
+}
+
+.gold-dot.selected {
+  border-color: #000;
+}
+
+img {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+}
+
+.gold-yellow {
+  color: var(--yellow-gold);
+}
+
+.gold-white {
+  color: var(--white-gold);
+}
+
+.gold-rose {
+  color: var(--rose-gold);
+}
+
+.scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+/* Hide the scrollbar on small screens */
+@media (max-width: 768px) {
+  .scroll-container::-webkit-scrollbar {
+    display: none;
   }
-}
-
-@font-face {
-  font-family: 'Avenir';
-  src: url('/fonts/Avenir/Avenir-Book.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Avenir';
-  src: url('/fonts/Avenir/Avenir-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Montserrat';
-  src: url('/fonts/Montserrat/Montserrat-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Montserrat';
-  src: url('/fonts/Montserrat/Montserrat-Medium.ttf') format('truetype');
-  font-weight: 500;
-  font-style: normal;
-}
-
-body {
-  font-family: 'Avenir', sans-serif;
+  .scroll-container {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
