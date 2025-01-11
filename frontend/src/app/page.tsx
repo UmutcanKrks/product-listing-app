@@ -11,10 +11,17 @@ interface Product {
   images: { yellow: string; rose: string; white: string };
 }
 
-const fetchProducts = async (
-  filters: Record<string, string | number>
-): Promise<Product[]> => {
-  const queryParams = new URLSearchParams(filters as Record<string, string>);
+interface Filters {
+  minPrice: string;
+  maxPrice: string;
+  minPopularity: string;
+  maxPopularity: string;
+}
+
+const fetchProducts = async (filters: Filters): Promise<Product[]> => {
+  const queryParams = new URLSearchParams(
+    Object.entries(filters).map(([key, value]) => [key, String(value)])
+  );
   const res = await fetch(`http://localhost:3001/api/products?${queryParams}`);
   console.log("Response:", res);
   if (!res.ok) {
@@ -26,29 +33,27 @@ const fetchProducts = async (
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     minPrice: "",
     maxPrice: "",
     minPopularity: "",
     maxPopularity: "",
   });
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  const [debouncedFilters, setDebouncedFilters] = useState<Filters>(filters);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Debounce filter updates
-  const debounce = (callback: Function, delay: number) => {
+  const debounce = (callback: (filters: Filters) => void, delay: number) => {
     let timer: NodeJS.Timeout;
-    return (...args: any) => {
+    return (filters: Filters) => {
       clearTimeout(timer);
-      timer = setTimeout(() => callback(...args), delay);
+      timer = setTimeout(() => callback(filters), delay);
     };
   };
 
-  // Apply debounce to filter updates
   const updateFilters = useCallback(
-    debounce((newFilters: typeof filters) => {
+    debounce((newFilters: Filters) => {
       setDebouncedFilters(newFilters);
-    }, 1500), // Adjust delay (ms) as needed
+    }, 1500),
     []
   );
 
@@ -126,7 +131,7 @@ export default function ProductsPage() {
           placeholder="Min Popularity"
           value={filters.minPopularity}
           onChange={handleFilterChange}
-          step="0.01" // Allow decimals like 0.01, 0.02, etc.
+          step="0.01"
           className="border p-2 rounded"
         />
         <input
@@ -135,7 +140,7 @@ export default function ProductsPage() {
           placeholder="Max Popularity"
           value={filters.maxPopularity}
           onChange={handleFilterChange}
-          step="0.01" // Allow decimals like 0.01, 0.02, etc.
+          step="0.01"
           className="border p-2 rounded"
         />
       </div>

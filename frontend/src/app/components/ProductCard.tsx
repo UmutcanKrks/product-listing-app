@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from 'next/image';
 
 interface ProductCardProps {
   title: string;
@@ -62,11 +63,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="rounded-lg p-4 text-start max-w-xs mx-auto">
-      <img
-        src={selectedImage ?? colors[0]?.imageUrl}
-        alt={title}
-        className="w-5/6 h-56 rounded-2xl mb-4 object-cover object-center shadow-none"
-      />
+      <Image
+  src={selectedImage ?? colors[0]?.imageUrl}
+  alt={title}
+  className="w-full h-56 rounded-2xl mb-4 object-cover object-center shadow-none"
+  width={320}
+  height={224}
+/>
       <h3 className="f-montserrat-medium fs-3 mb-1 ">{title}</h3>
       <p className="montserrat-regular fs-3 mb-5">${price} USD</p>
       <div className="flex justify-start gap-2 mb-3">
