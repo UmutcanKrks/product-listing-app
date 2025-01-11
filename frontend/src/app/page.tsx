@@ -22,11 +22,16 @@ const fetchProducts = async (filters: Filters): Promise<Product[]> => {
   const queryParams = new URLSearchParams(
     Object.entries(filters).map(([key, value]) => [key, String(value)])
   );
-  const res = await fetch(`http://localhost:3001/api/products?${queryParams}`);
-  console.log("Response:", res);
+  const res = await fetch(`https://backend-three-liart-33.vercel.app/api/products?${queryParams}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
   if (!res.ok) {
     throw new Error("Failed to fetch products");
   }
+
   return res.json();
 };
 
