@@ -1,6 +1,6 @@
 "use client";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ProductCard from "./components/ProductCard";
-import { useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 
 interface Product {
@@ -11,8 +11,12 @@ interface Product {
   images: { yellow: string; rose: string; white: string };
 }
 
-const fetchProducts = async (): Promise<Product[]> => {
-  const res = await fetch("http://localhost:3001/api/products");
+const fetchProducts = async (
+  filters: Record<string, string | number>
+): Promise<Product[]> => {
+  const queryParams = new URLSearchParams(filters as Record<string, string>);
+  const res = await fetch(`http://localhost:3001/api/products?${queryParams}`);
+  console.log("Response:", res);
   if (!res.ok) {
     throw new Error("Failed to fetch products");
   }
@@ -22,12 +26,41 @@ const fetchProducts = async (): Promise<Product[]> => {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    minPrice: "",
+    maxPrice: "",
+    minPopularity: "",
+    maxPopularity: "",
+  });
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Debounce filter updates
+  const debounce = (callback: Function, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return (...args: any) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => callback(...args), delay);
+    };
+  };
+
+  // Apply debounce to filter updates
+  const updateFilters = useCallback(
+    debounce((newFilters: typeof filters) => {
+      setDebouncedFilters(newFilters);
+    }, 1500), // Adjust delay (ms) as needed
+    []
+  );
+
+  useEffect(() => {
+    updateFilters(filters);
+  }, [filters, updateFilters]);
 
   useEffect(() => {
     const getProducts = async () => {
+      setIsLoading(true);
       try {
-        const data = await fetchProducts();
+        const data = await fetchProducts(debouncedFilters);
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -37,7 +70,7 @@ export default function ProductsPage() {
     };
 
     getProducts();
-  }, []);
+  }, [debouncedFilters]);
 
   const handleScroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -48,7 +81,16 @@ export default function ProductsPage() {
     }
   };
 
-  // Display loading state while fetching data
+  const handleFilterChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center h-screen flex flex-col justify-center">
@@ -61,17 +103,58 @@ export default function ProductsPage() {
     <div className="container-xl h-screen flex flex-col justify-center sm:mx-16">
       <h1 className="fs-4 f-avenir text-center mb-6">Product List</h1>
 
+      <div className="filters flex flex-wrap gap-4 mb-6 mx-auto">
+        <input
+          type="number"
+          name="minPrice"
+          placeholder="Min Price"
+          value={filters.minPrice}
+          onChange={handleFilterChange}
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          name="maxPrice"
+          placeholder="Max Price"
+          value={filters.maxPrice}
+          onChange={handleFilterChange}
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          name="minPopularity"
+          placeholder="Min Popularity"
+          value={filters.minPopularity}
+          onChange={handleFilterChange}
+          step="0.01" // Allow decimals like 0.01, 0.02, etc.
+          className="border p-2 rounded"
+        />
+        <input
+          type="number"
+          name="maxPopularity"
+          placeholder="Max Popularity"
+          value={filters.maxPopularity}
+          onChange={handleFilterChange}
+          step="0.01" // Allow decimals like 0.01, 0.02, etc.
+          className="border p-2 rounded"
+        />
+      </div>
+
       <div className="relative">
-        <button
-          className="absolute border-none left-0 top-1/2 hidden md:block"
-          onClick={() => handleScroll("left")}
-        >
-          <ChevronLeftIcon className="w-16 h-16" />
-        </button>
+        {products.length > 4 && (
+          <button
+            className="absolute border-none left-0 top-1/2 hidden md:block"
+            onClick={() => handleScroll("left")}
+          >
+            <ChevronLeftIcon className="w-16 h-16" />
+          </button>
+        )}
 
         <div
           ref={scrollRef}
-          className="scroll-container flex flex-col md:flex-row overflow-x-auto gap-x-4 py-4 max-h-[80vh] scroll-smooth sm:mx-4 md:mx-16 pb-16"
+          className={`scroll-container flex flex-col md:flex-row overflow-x-auto gap-x-4 py-4 max-h-[80vh] scroll-smooth sm:mx-4 md:mx-16 pb-16 ${
+            products.length <= 4 ? "hide-scrollbar" : ""
+          }`}
         >
           {products.map((product) => (
             <div
@@ -104,12 +187,14 @@ export default function ProductsPage() {
           ))}
         </div>
 
-        <button
-          className="absolute border-none top-1/2 right-0 hidden md:block"
-          onClick={() => handleScroll("right")}
-        >
-          <ChevronRightIcon className="w-16 h-16" />
-        </button>
+        {products.length > 4 && (
+          <button
+            className="absolute border-none top-1/2 right-0 hidden md:block"
+            onClick={() => handleScroll("right")}
+          >
+            <ChevronRightIcon className="w-16 h-16" />
+          </button>
+        )}
       </div>
     </div>
   );
