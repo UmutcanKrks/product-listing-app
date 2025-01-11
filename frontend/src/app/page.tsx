@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ProductCard from "./components/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 interface Product {
   name: string;
@@ -39,12 +41,13 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
-    minPrice: "",
-    maxPrice: "",
-    minPopularity: "",
-    maxPopularity: "",
+    minPrice: "1",
+    maxPrice: "1000",
+    minPopularity: "0",
+    maxPopularity: "1",
   });
-  const [debouncedFilters, setDebouncedFilters] = useState<Filters>(filters);
+  const [priceRange, setPriceRange] = useState<[number, number]>([1, 1000]);
+  const [popularityRange, setPopularityRange] = useState<[number, number]>([0, 1]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const debounce = (callback: (filters: Filters) => void, delay: number) => {
@@ -57,20 +60,25 @@ export default function ProductsPage() {
 
   const updateFilters = useCallback(
     debounce((newFilters: Filters) => {
-      setDebouncedFilters(newFilters);
+      setFilters(newFilters);
     }, 1500),
     []
   );
 
   useEffect(() => {
-    updateFilters(filters);
-  }, [filters, updateFilters]);
+    updateFilters({
+      minPrice: priceRange[0].toString(),
+      maxPrice: priceRange[1].toString(),
+      minPopularity: popularityRange[0].toString(),
+      maxPopularity: popularityRange[1].toString(),
+    });
+  }, [priceRange, popularityRange, updateFilters]);
 
   useEffect(() => {
     const getProducts = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchProducts(debouncedFilters);
+        const data = await fetchProducts(filters);
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -80,25 +88,14 @@ export default function ProductsPage() {
     };
 
     getProducts();
-  }, [debouncedFilters]);
+  }, [filters]);
 
   const handleScroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
       const scrollAmount = 300;
       const container = scrollRef.current;
-      container.scrollLeft +=
-        direction === "right" ? scrollAmount : -scrollAmount;
+      container.scrollLeft += direction === "right" ? scrollAmount : -scrollAmount;
     }
-  };
-
-  const handleFilterChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFilters((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
   };
 
   if (isLoading) {
@@ -113,41 +110,31 @@ export default function ProductsPage() {
     <div className="container-xl h-screen flex flex-col justify-center sm:mx-16">
       <h1 className="fs-4 f-avenir text-center mb-6">Product List</h1>
 
-      <div className="filters flex flex-wrap gap-4 mb-6 mx-auto">
-        <input
-          type="number"
-          name="minPrice"
-          placeholder="Min Price"
-          value={filters.minPrice}
-          onChange={handleFilterChange}
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="maxPrice"
-          placeholder="Max Price"
-          value={filters.maxPrice}
-          onChange={handleFilterChange}
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="minPopularity"
-          placeholder="Min Popularity"
-          value={filters.minPopularity}
-          onChange={handleFilterChange}
-          step="0.01"
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="maxPopularity"
-          placeholder="Max Popularity"
-          value={filters.maxPopularity}
-          onChange={handleFilterChange}
-          step="0.01"
-          className="border p-2 rounded"
-        />
+      <div className="filters flex flex-wrap gap-6 mb-6 mx-auto">
+        {/* Price Range Slider */}
+        <div className="filter-item">
+          <h2 className="text-sm mb-2">Price Range: ${priceRange[0]} - ${priceRange[1]}</h2>
+          <Slider
+            range
+            min={1}
+            max={1000}
+            value={priceRange}
+            onChange={(value) => setPriceRange(value as [number, number])}
+          />
+        </div>
+
+        {/* Popularity Range Slider */}
+        <div className="filter-item">
+          <h2 className="text-sm mb-2">Popularity: {popularityRange[0].toFixed(2)} - {popularityRange[1].toFixed(2)}</h2>
+          <Slider
+            range
+            min={0}
+            max={1}
+            step={0.01}
+            value={popularityRange}
+            onChange={(value) => setPopularityRange(value as [number, number])}
+          />
+        </div>
       </div>
 
       <div className="relative">
