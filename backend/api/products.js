@@ -52,7 +52,7 @@ export default async function handler(req, res) {
 
     const filteredProducts = updatedProducts.filter((product) => {
       const price = parseFloat(product.price);
-      const popularity = product.popularityScore;
+      const popularity = product.popularityScore*5;
 
       const minPop = minPopularity ? parseFloat(minPopularity) : -Infinity;
       const maxPop = maxPopularity ? parseFloat(maxPopularity) : Infinity;

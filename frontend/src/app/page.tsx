@@ -4,6 +4,8 @@ import ProductCard from "./components/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.css";
 
 interface Product {
   name: string;
@@ -24,11 +26,14 @@ const fetchProducts = async (filters: Filters): Promise<Product[]> => {
   const queryParams = new URLSearchParams(
     Object.entries(filters).map(([key, value]) => [key, String(value)])
   );
-  const res = await fetch(`https://backend-three-liart-33.vercel.app/api/products?${queryParams}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  const res = await fetch(
+    `https://backend-three-liart-33.vercel.app/api/products?${queryParams}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch products");
@@ -47,8 +52,11 @@ export default function ProductsPage() {
     maxPopularity: "1",
   });
   const [priceRange, setPriceRange] = useState<[number, number]>([1, 1000]);
-  const [popularityRange, setPopularityRange] = useState<[number, number]>([0, 1]);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [popularityRange, setPopularityRange] = useState<[number, number]>([
+    0, 5,
+  ]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const swiperRef = useRef<any>(null); // Create a reference for Swiper
 
   const debounce = (callback: (filters: Filters) => void, delay: number) => {
     let timer: NodeJS.Timeout;
@@ -90,14 +98,6 @@ export default function ProductsPage() {
     getProducts();
   }, [filters]);
 
-  const handleScroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 300;
-      const container = scrollRef.current;
-      container.scrollLeft += direction === "right" ? scrollAmount : -scrollAmount;
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center h-screen flex flex-col justify-center">
@@ -113,7 +113,9 @@ export default function ProductsPage() {
       <div className="filters flex flex-wrap gap-6 mb-6 mx-auto">
         {/* Price Range Slider */}
         <div className="filter-item">
-          <h2 className="text-sm mb-2">Price Range: ${priceRange[0]} - ${priceRange[1]}</h2>
+          <h2 className="text-sm mb-2">
+            Price Range: ${priceRange[0]} - ${priceRange[1]}
+          </h2>
           <Slider
             range
             min={1}
@@ -125,36 +127,55 @@ export default function ProductsPage() {
 
         {/* Popularity Range Slider */}
         <div className="filter-item">
-          <h2 className="text-sm mb-2">Popularity: {popularityRange[0].toFixed(2)} - {popularityRange[1].toFixed(2)}</h2>
+          <h2 className="text-sm mb-2">
+            Popularity: {popularityRange[0].toFixed(2)} -{" "}
+            {popularityRange[1].toFixed(2)}
+          </h2>
           <Slider
             range
             min={0}
-            max={1}
-            step={0.01}
+            max={5}
+            step={0.1}
             value={popularityRange}
             onChange={(value) => setPopularityRange(value as [number, number])}
           />
         </div>
       </div>
 
-      <div className="relative">
-        {products.length > 4 && (
-          <button
-            className="absolute border-none left-0 top-1/2 hidden md:block"
-            onClick={() => handleScroll("left")}
-          >
-            <ChevronLeftIcon className="w-16 h-16" />
-          </button>
-        )}
+      <button
+        className="absolute left-0 top-1/2 z-10 -translate-y-1/2"
+        onClick={() => swiperRef.current.swiper.slidePrev()}
+      >
+        <ChevronLeftIcon className="w-16 h-16" />
+      </button>
 
-        <div
-          ref={scrollRef}
-          className={`scroll-container flex flex-col md:flex-row overflow-x-auto gap-x-4 py-4 max-h-[80vh] scroll-smooth sm:mx-4 md:mx-16 pb-16 ${
-            products.length <= 4 ? "hide-scrollbar" : ""
-          }`}
+      <button
+        className="absolute right-0 top-1/2 z-10 -translate-y-1/2"
+        onClick={() => swiperRef.current.swiper.slideNext()}
+      >
+        <ChevronRightIcon className="w-16 h-16" />
+      </button>
+      <div className="relative">
+        <Swiper
+          ref={swiperRef}
+          spaceBetween={10}
+          slidesPerView={"auto"}
+          loop={false}
+          grabCursor={true}
+          breakpoints={{
+            640: {
+              slidesPerView: 2,
+            },
+            768: {
+              slidesPerView: 3,
+            },
+            1024: {
+              slidesPerView: 4,
+            },
+          }}
         >
           {products.map((product) => (
-            <div
+            <SwiperSlide
               key={product.name}
               className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
             >
@@ -180,18 +201,9 @@ export default function ProductsPage() {
                   },
                 ]}
               />
-            </div>
+            </SwiperSlide>
           ))}
-        </div>
-
-        {products.length > 4 && (
-          <button
-            className="absolute border-none top-1/2 right-0 hidden md:block"
-            onClick={() => handleScroll("right")}
-          >
-            <ChevronRightIcon className="w-16 h-16" />
-          </button>
-        )}
+        </Swiper>
       </div>
     </div>
   );
