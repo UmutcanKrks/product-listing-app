@@ -6,6 +6,7 @@ import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/swiper-bundle.css";
+import { Scrollbar } from "swiper/modules";
 
 interface Product {
   name: string;
@@ -157,11 +158,13 @@ export default function ProductsPage() {
       </button>
       <div className="relative">
         <Swiper
+          modules={[Scrollbar]}
           ref={swiperRef}
           spaceBetween={10}
           slidesPerView={"auto"}
           loop={false}
           grabCursor={true}
+          scrollbar={{ draggable: true }}
           breakpoints={{
             640: {
               slidesPerView: 2,
@@ -177,7 +180,7 @@ export default function ProductsPage() {
           {products.map((product) => (
             <SwiperSlide
               key={product.name}
-              className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 xl:w-1/4"
+              className="flex-shrink-0 w-full md:w-1/2 lg:w-1/3 xl:w-1/4 mb-16"
             >
               <ProductCard
                 title={product.name}
